@@ -9,10 +9,7 @@ const saveCustomer = (req, resp) => {
     });
 
     customer.save().then(result => {
-        resp.status(200).json({
-            "isSaved": true,
-            data: result
-        });
+        resp.status(200).json({isSaved: true, data: result});
     }).catch(err => {
         resp.status(500).json(err);
     });
@@ -52,11 +49,24 @@ const updateCustomer = (req, resp) => {
 
 const getAllCustomers = (req, resp) => {
     try {
-        CustomerDTO.find().then(result => {
-            resp.status(200).json({data: result});
-        }).catch(error => {
-            resp.status(500).json(error);
+
+        CustomerDTO.countDocuments(function (e, count) {
+            const pagination = req.query.pagination ? Number(req.query.pagination) : 10;
+            let page = req.query.page ? Number(req.query.page) : 1;
+
+            if (page === 0) {
+                page = 1;
+            }
+
+            CustomerDTO.find().skip((page - 1) * pagination).limit(pagination).sort({customerSalary: -1}).then(result => {
+                resp.status(200).json({data: result, count: count});
+            }).catch(error => {
+                resp.status(500).json(error);
+            });
+
         });
+
+
     } catch (e) {
 
     }
